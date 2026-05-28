@@ -1,0 +1,12 @@
+# 依赖文件夹
+node_modules/
+
+# 可选：其他常见的需要忽略的内容
+dist/
+build/
+.env
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
