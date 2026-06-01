@@ -27,14 +27,14 @@ $(function () {
     })
 
     // 注册表单提交事件
-    var baseUrl = "http://localhost:3000"
+    // var baseUrl = "http://localhost:3000"
     $('#form_reg').on('submit', function (e) {
         e.preventDefault()
         var parmObj = $('#form_reg').serializeArray().reduce(function (a, b) {
             a[b.name] = b.value;
             return a;
         }, {});
-        $.post(baseUrl + '/api/reguser', parmObj, function (res) {
+        $.post('/api/reguser', parmObj, function (res) {
             if (res.status !== 0) {
                 return layer.msg(res.message, { icon: 2 });
             }
@@ -57,7 +57,7 @@ $(function () {
                 layer.msg(res.message, { icon: 1 })
                 // 跳转主页
                 localStorage.setItem('token',"Bearer "+res.token)
-                // location.href='index.html'
+                location.href='index.html'
             }
         })
     })

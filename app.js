@@ -55,16 +55,16 @@ function verifyToken(req, res, next) {
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN格式
 
     if (!token) {
-        return res.status(401).json({
+        return res.status(200).json({
             status: 1,
-            message: '未提供认证token！'
+            message: 'token认证失败！'
         });
     }
 
     // 验证token
     jwt.verify(token, JWT_SECRET_KEY, (err, decoded) => {
         if (err) {
-            return res.status(403).json({
+            return res.status(200).json({
                 status: 1,
                 message: 'token无效或已过期！'
             });
@@ -222,12 +222,12 @@ app.post('/api/login', (req, res) => {
  * GET /api/user/info
  * 演示如何在其他接口中使用token验证
  */
-app.get('/api/user/info', verifyToken, (req, res) => {
+app.get('/my/userinfo', verifyToken, (req, res) => {
     // verifyToken中间件已经验证了token并将用户信息存入req.user
     const user = users.find(u => u.username === req.user.username);
 
     if (!user) {
-        return res.status(404).json({
+        return res.status(200).json({
             status: 1,
             message: '用户不存在！'
         });
@@ -238,7 +238,9 @@ app.get('/api/user/info', verifyToken, (req, res) => {
         data: {
             id: user.id,
             username: user.username,
-            createdAt: user.createdAt
+            nickname:user.nickname || '',
+            email:user.email|| '',
+            user_pic:user.user_pic||''
         }
     });
 });
