@@ -12,7 +12,7 @@ $.ajaxPrefilter(function (options) {
     }
     options.complete = function (res) {
         var resp = res.responseJSON
-        if (resp.status === 1 && resp.message === 'token认证失败！') {
+        if (resp.status === 1 && (resp.message === 'token认证失败！' || resp.message === 'token无效或已过期！')) {
             localStorage.removeItem('token')
             return location.href = '/login.html'
         }

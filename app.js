@@ -192,7 +192,7 @@ app.post('/api/login', (req, res) => {
     //         }
     //     });
     // });
-    
+
     const { username, password } = req.body;
     // token验证通过，验证用户名和密码
     const user = users.find(u => u.username === username && u.password === password);
@@ -235,16 +235,178 @@ app.get('/my/userinfo', verifyToken, (req, res) => {
 
     res.json({
         status: 0,
+        message: '获取用户信息成功！',
         data: {
             id: user.id,
             username: user.username,
-            nickname:user.nickname || '',
-            email:user.email|| '',
-            user_pic:user.user_pic||''
+            nickname: user.nickname || '',
+            email: user.email || '',
+            user_pic: user.user_pic || ''
         }
     });
 });
+/**
+ * 修改用户信息接口
+ * POST /my/userinfo
+ * 需要token验证
+ */
+app.post('/my/userinfo', verifyToken, (req, res) => {
+    const { nickname, email } = req.body;
 
+    // 参数验证
+    if (!nickname && !email) {
+        return res.status(200).json({
+            status: 1,
+            message: '昵称或邮箱不能为空！'
+        });
+    }
+
+    // 查找当前用户
+    const user = users.find(u => u.username === req.user.username);
+
+    if (!user) {
+        return res.status(200).json({
+            status: 1,
+            message: '用户不存在！'
+        });
+    }
+
+    // 更新用户信息
+    if (nickname) {
+        user.nickname = nickname;
+    }
+    if (email) {
+        user.email = email;
+    }
+
+    console.log(`用户信息修改成功: ${req.user.username}, 昵称: ${user.nickname}, 邮箱: ${user.email}`);
+
+    // 返回成功响应
+    res.status(200).json({
+        status: 0,
+        message: '修改用户信息成功！'
+    });
+});
+/**
+ * 修改用户密码接口
+ * POST /my/updatepwd
+ * 需要token验证
+ */
+app.post('/my/updatepwd', verifyToken, (req, res) => {
+    const { oldPwd, newPwd } = req.body;
+
+    // // 参数验证
+    // if (!oldPwd || !newPwd) {
+    //     return res.status(200).json({
+    //         status: 1,
+    //         message: '原密码和新密码不能为空！'
+    //     });
+    // }
+
+    // // 验证新密码长度（可选，建议至少6位）
+    // if (newPwd.length < 6) {
+    //     return res.status(200).json({
+    //         status: 1,
+    //         message: '新密码长度不能少于6位！'
+    //     });
+    // }
+
+    // 查找当前用户
+    const user = users.find(u => u.username === req.user.username);
+
+    if (!user) {
+        return res.status(200).json({
+            status: 1,
+            message: '用户不存在！'
+        });
+    }
+
+    // 验证原密码是否正确
+    if (user.password !== oldPwd) {
+        return res.status(200).json({
+            status: 1,
+            message: '原密码错误！'
+        });
+    }
+
+    // 验证新密码是否与原密码相同
+    if (oldPwd === newPwd) {
+        return res.status(200).json({
+            status: 1,
+            message: '新密码不能与原密码相同！'
+        });
+    }
+
+    // 更新密码
+    user.password = newPwd;
+
+    console.log(`用户密码修改成功: ${req.user.username}`);
+
+    // 返回成功响应
+    res.status(200).json({
+        status: 0,
+        message: '修改密码成功！'
+    });
+});
+/**
+ * 更新用户头像接口
+ * POST /my/update/avatar
+ * 需要token验证
+ */
+app.post('/my/update/avatar', verifyToken, (req, res) => {
+    const { avatar } = req.body;
+
+    // 参数验证
+    if (!avatar) {
+        return res.status(200).json({
+            status: 1,
+            message: '头像不能为空！'
+        });
+    }
+
+    // 验证是否为base64格式（可选，基础验证）
+    const base64Regex = /^data:image\/(png|jpg|jpeg|gif|bmp|webp);base64,/i;
+    if (!base64Regex.test(avatar)) {
+        return res.status(200).json({
+            status: 1,
+            message: '头像格式错误，请上传有效的base64格式图片！'
+        });
+    }
+
+    // 验证base64大小（可选，限制头像大小，例如限制为2MB）
+    // base64字符串长度约为原始数据的4/3，所以2MB图片的base64长度约为2.7MB
+    const estimatedSize = Buffer.byteLength(avatar, 'utf8');
+    const maxSize = 3 * 1024 * 1024; // 3MB限制
+
+    if (estimatedSize > maxSize) {
+        return res.status(200).json({
+            status: 1,
+            message: '头像大小不能超过2MB！'
+        });
+    }
+
+    // 查找当前用户
+    const user = users.find(u => u.username === req.user.username);
+
+    if (!user) {
+        return res.status(200).json({
+            status: 1,
+            message: '用户不存在！'
+        });
+    }
+
+    // 更新用户头像（存储base64字符串）
+    // 注意：在生产环境中，建议将图片保存到文件服务器或OSS，数据库中只存储路径
+    user.user_pic = avatar;
+
+    console.log(`用户头像更新成功: ${req.user.username}, 头像大小: ${(estimatedSize / 1024).toFixed(2)}KB`);
+
+    // 返回成功响应
+    res.status(200).json({
+        status: 0,
+        message: '更新头像成功！'
+    });
+});
 /**
  * 健康检查接口（无需token验证）
  * GET /health
